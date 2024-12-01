@@ -27,6 +27,7 @@ mod day22;
 mod day23;
 mod day24;
 mod day25;
+mod utils;
 
 type Puzzle = fn(&str) -> Option<i64>;
 type Day = (Puzzle, Puzzle);
@@ -61,16 +62,19 @@ const DAYS: [Day; 25] = [
 
 fn main() {
     for ((part1, part2), day) in DAYS.iter().zip(1..) {
+        println!("Day {day:02}:");
         let input = fs::read_to_string(format!("input/day{day:02}.txt")).unwrap();
         let time = Instant::now();
         if let Some(answer) = part1(&input) {
-            println!("{answer}");
-            println!("({:?})", time.elapsed());
+            let elapsed = time.elapsed();
+            println!("\tPart 1: {answer}");
+            println!("\t({elapsed:?})");
         }
         let time = Instant::now();
         if let Some(answer) = part2(&input) {
-            println!("{answer}");
-            println!("({:?})", time.elapsed());
+            let elapsed = time.elapsed();
+            println!("\tPart 2: {answer}");
+            println!("\t({elapsed:?})");
         }
     }
 }
