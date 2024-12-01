@@ -16,7 +16,8 @@ pub fn part1(input: &str) -> Option<i64> {
     let answer = left
         .into_iter()
         .zip(right)
-        .fold(0, |acc, (left, right)| acc + (left.abs_diff(right) as i64));
+        .map(|(left, right)| left.abs_diff(right) as i64)
+        .sum();
     Some(answer)
 }
 
@@ -30,13 +31,12 @@ pub fn part2(input: &str) -> Option<i64> {
     });
     let right = input.lines().map(|line| {
         line.split_whitespace()
-            .skip(1)
-            .next()
+            .nth(1)
             .unwrap()
             .parse::<i64>()
             .unwrap()
     });
-    let freqs = right.collect::<Freqs<_>>();
+    let freqs: Freqs<_> = right.collect();
     let answer = left
         .map(|n| n * (*freqs.get(&n).unwrap_or(&0) as i64))
         .sum();

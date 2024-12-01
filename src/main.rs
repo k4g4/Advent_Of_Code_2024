@@ -1,6 +1,4 @@
-#![allow(unused)]
-
-use std::{fs, time::Instant};
+use std::{env, fs, time::Instant};
 
 mod day01;
 mod day02;
@@ -30,9 +28,9 @@ mod day25;
 mod utils;
 
 type Puzzle = fn(&str) -> Option<i64>;
-type Day = (Puzzle, Puzzle);
 
-const DAYS: [Day; 25] = [
+const DAYS: [(Puzzle, Puzzle); 26] = [
+    (|_| None, |_| None),
     (day01::part1, day01::part2),
     (day02::part1, day02::part2),
     (day03::part1, day03::part2),
@@ -61,20 +59,36 @@ const DAYS: [Day; 25] = [
 ];
 
 fn main() {
-    for ((part1, part2), day) in DAYS.iter().zip(1..) {
-        println!("Day {day:02}:");
-        let input = fs::read_to_string(format!("input/day{day:02}.txt")).unwrap();
-        let time = Instant::now();
-        if let Some(answer) = part1(&input) {
-            let elapsed = time.elapsed();
-            println!("\tPart 1: {answer}");
-            println!("\t({elapsed:?})");
+    let get_input = |day| fs::read_to_string(format!("input/day{day:02}.txt")).unwrap();
+
+    if let Some(arg) = env::args().nth(1) {
+        let day = arg.parse().expect("Invalid argument, expected a number");
+        let input = get_input(day);
+        let (part1, part2) = DAYS[day];
+
+        print!("Part 1: ");
+        run_puzzle(&input, part1);
+        print!("Part 2: ");
+        run_puzzle(&input, part2);
+    } else {
+        for (day, &(part1, part2)) in DAYS.iter().enumerate().skip(1) {
+            println!("Day {day:02}:");
+            let input = get_input(day);
+
+            print!("\tPart 1: ");
+            run_puzzle(&input, part1);
+            print!("\tPart 2: ");
+            run_puzzle(&input, part2);
         }
-        let time = Instant::now();
-        if let Some(answer) = part2(&input) {
-            let elapsed = time.elapsed();
-            println!("\tPart 2: {answer}");
-            println!("\t({elapsed:?})");
-        }
+    }
+}
+
+fn run_puzzle(input: &str, puzzle: Puzzle) {
+    let time = Instant::now();
+    if let Some(answer) = puzzle(input) {
+        let elapsed = time.elapsed();
+        println!("{answer} ({elapsed:?})");
+    } else {
+        println!();
     }
 }
