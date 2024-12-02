@@ -1,44 +1,31 @@
-use crate::utils::Freqs;
+use crate::utils::*;
 
-pub fn part1(input: &str) -> Option<i64> {
+pub fn part1(input: &str) -> Answer {
     let (mut left, mut right): (Vec<_>, Vec<_>) = input
         .lines()
         .map(|line| {
-            let mut columns = line.split_whitespace();
-            (
-                columns.next().unwrap().parse::<i64>().unwrap(),
-                columns.next().unwrap().parse::<i64>().unwrap(),
-            )
+            let (left, line) = parse::<i64>(line);
+            let (right, _) = parse::<i64>(line.trim_ascii_start());
+            (left, right)
         })
         .unzip();
     left.sort_unstable();
     right.sort_unstable();
-    let answer = left
-        .into_iter()
+    left.into_iter()
         .zip(right)
-        .map(|(left, right)| left.abs_diff(right) as i64)
-        .sum();
-    Some(answer)
+        .map(|(left, right)| left.abs_diff(right))
+        .sum::<u64>()
+        .into()
 }
 
-pub fn part2(input: &str) -> Option<i64> {
-    let left = input.lines().map(|line| {
-        line.split_whitespace()
-            .next()
-            .unwrap()
-            .parse::<i64>()
-            .unwrap()
-    });
+pub fn part2(input: &str) -> Answer {
+    let left = input.lines().map(|line| parse(line).0);
     let right = input.lines().map(|line| {
-        line.split_whitespace()
-            .nth(1)
-            .unwrap()
-            .parse::<i64>()
-            .unwrap()
+        let (_, line) = line.split_once("   ").unwrap();
+        parse(line).0
     });
-    let freqs: Freqs<_> = right.collect();
-    let answer = left
-        .map(|n| n * (*freqs.get(&n).unwrap_or(&0) as i64))
-        .sum();
-    Some(answer)
+    let counter: Counter<i64> = right.collect();
+    left.map(|n| n * (counter.get(&n).copied().unwrap_or(0) as i64))
+        .sum::<i64>()
+        .into()
 }
