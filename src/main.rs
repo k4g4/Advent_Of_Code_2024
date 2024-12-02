@@ -6,15 +6,15 @@ type Puzzle = fn(&str) -> Answer;
 
 const DAYS: [(Puzzle, Puzzle); 26] = [
     (|_| unreachable!(), |_| unreachable!()),
-    (day01::part1, day01::part2),
-    (day02::part1, day02::part2),
-    (day03::part1, day03::part2),
-    (day04::part1, day04::part2),
-    (day05::part1, day05::part2),
-    (day06::part1, day06::part2),
-    (day07::part1, day07::part2),
-    (day08::part1, day08::part2),
-    (day09::part1, day09::part2),
+    (day1::part1, day1::part2),
+    (day2::part1, day2::part2),
+    (day3::part1, day3::part2),
+    (day4::part1, day4::part2),
+    (day5::part1, day5::part2),
+    (day6::part1, day6::part2),
+    (day7::part1, day7::part2),
+    (day8::part1, day8::part2),
+    (day9::part1, day9::part2),
     (day10::part1, day10::part2),
     (day11::part1, day11::part2),
     (day12::part1, day12::part2),
@@ -34,7 +34,7 @@ const DAYS: [(Puzzle, Puzzle); 26] = [
 ];
 
 fn main() {
-    let get_input = |day| fs::read_to_string(format!("input/day{day:02}.txt")).unwrap();
+    let get_input = |day| fs::read_to_string(format!("input/day{day}.txt")).unwrap();
 
     if let Some(arg) = env::args().nth(1) {
         let day = arg.parse().expect("Invalid argument, expected a number");
