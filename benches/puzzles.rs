@@ -1,32 +1,28 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 macro_rules! day_bench {
-    ($title:ident) => {
-        pub fn $title(c: &mut Criterion) {
-            let input = black_box(include_str!(concat!(
-                "../input/",
-                stringify!($title),
-                ".txt"
-            )));
-            c.bench_function(concat!(stringify!($title), " part 1"), |b| {
-                b.iter(|| aoc_2024::$title::part1(input))
+    ($day:ident) => {
+        pub fn $day(c: &mut Criterion) {
+            let input = black_box(include_str!(concat!("../input/", stringify!($day), ".txt")));
+            c.bench_function(concat!(stringify!($day), " part 1"), |b| {
+                b.iter(|| aoc_2024::$day::part1(input))
             });
-            c.bench_function(concat!(stringify!($title), " part 2"), |b| {
-                b.iter(|| aoc_2024::$title::part2(input))
+            c.bench_function(concat!(stringify!($day), " part 2"), |b| {
+                b.iter(|| aoc_2024::$day::part2(input))
             });
         }
     };
 }
 
-day_bench!(day01);
-day_bench!(day02);
-day_bench!(day03);
-day_bench!(day04);
-day_bench!(day05);
-day_bench!(day06);
-day_bench!(day07);
-day_bench!(day08);
-day_bench!(day09);
+day_bench!(day1);
+day_bench!(day2);
+day_bench!(day3);
+day_bench!(day4);
+day_bench!(day5);
+day_bench!(day6);
+day_bench!(day7);
+day_bench!(day8);
+day_bench!(day9);
 day_bench!(day10);
 day_bench!(day11);
 day_bench!(day12);
@@ -48,15 +44,15 @@ criterion_group! {
     name = puzzles;
     config = Criterion::default();
     targets =
-        day01,
-        day02,
-        day03,
-        day04,
-        day05,
-        day06,
-        day07,
-        day08,
-        day09,
+        day1,
+        day2,
+        day3,
+        day4,
+        day5,
+        day6,
+        day7,
+        day8,
+        day9,
         day10,
         day11,
         day12,
