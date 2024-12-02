@@ -7,6 +7,8 @@ use std::{
     ops::Deref,
 };
 
+pub use tinyvec::ArrayVec;
+
 pub enum Answer {
     Finished(i64),
     Unfinished,
