@@ -33,8 +33,11 @@ macro_rules! from_int {
         }
     };
 }
+from_int!(i32);
+from_int!(u32);
 from_int!(i64);
 from_int!(u64);
+from_int!(isize);
 from_int!(usize);
 
 pub struct Counter<K>(FxHashMap<K, usize>);
