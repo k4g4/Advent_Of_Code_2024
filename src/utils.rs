@@ -1,4 +1,5 @@
 use atoi_simd::Parse;
+use itertools::Itertools;
 use rayon::iter::{FromParallelIterator, IntoParallelIterator, ParallelIterator};
 use rustc_hash::FxHashMap;
 use std::{
@@ -39,6 +40,75 @@ from_int!(i64);
 from_int!(u64);
 from_int!(isize);
 from_int!(usize);
+
+pub const DIRS: &[(isize, isize)] = &[
+    (-1, -1),
+    (-1, 0),
+    (-1, 1),
+    (0, -1),
+    (0, 1),
+    (1, -1),
+    (1, 0),
+    (1, 1),
+];
+
+pub const DIAGS: &[(isize, isize)] = &[(-1, -1), (-1, 1), (1, -1), (1, 1)];
+
+#[derive(Debug)]
+pub struct Grid<'a>(Vec<&'a [u8]>);
+
+impl<'a> Grid<'a> {
+    pub fn new(input: &'a str) -> Self {
+        Self(input.lines().map(str::as_bytes).collect())
+    }
+
+    pub fn indices(&self) -> impl Iterator<Item = (isize, isize)> + use<> {
+        (0..self.0.len() as _).cartesian_product(0..self.0[0].len() as _)
+    }
+
+    pub fn get(&self, (row, column): (isize, isize)) -> Option<u8> {
+        self.0
+            .get(row as usize)
+            .and_then(|row| row.get(column as usize))
+            .copied()
+    }
+}
+
+pub struct GridIter<'a> {
+    curr_row: &'a [u8],
+    rem_rows: &'a [&'a [u8]],
+}
+
+impl<'a, 'b> Iterator for GridIter<'a> {
+    type Item = &'a u8;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let [first, rest @ ..] = self.curr_row {
+            self.curr_row = rest;
+            Some(first)
+        } else if let [[first_first, first_rest @ ..], rest @ ..] = self.rem_rows {
+            self.curr_row = first_rest;
+            self.rem_rows = rest;
+            Some(first_first)
+        } else {
+            None
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a Grid<'a> {
+    type Item = &'a u8;
+
+    type IntoIter = GridIter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        let (first, rest) = self.0.split_first().unwrap();
+        GridIter {
+            curr_row: first,
+            rem_rows: rest,
+        }
+    }
+}
 
 pub struct Counter<K>(FxHashMap<K, usize>);
 
