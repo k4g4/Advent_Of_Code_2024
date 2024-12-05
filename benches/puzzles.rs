@@ -4,10 +4,10 @@ macro_rules! day_bench {
     ($day:ident) => {
         pub fn $day(c: &mut Criterion) {
             let input = black_box(include_str!(concat!("../input/", stringify!($day), ".txt")));
-            c.bench_function(concat!(stringify!($day), " part 1"), |b| {
+            c.bench_function(concat!(stringify!($day), "_part1"), |b| {
                 b.iter(|| aoc_2024::$day::part1(input))
             });
-            c.bench_function(concat!(stringify!($day), " part 2"), |b| {
+            c.bench_function(concat!(stringify!($day), "_part2"), |b| {
                 b.iter(|| aoc_2024::$day::part2(input))
             });
         }

@@ -41,7 +41,9 @@ from_int!(u64);
 from_int!(isize);
 from_int!(usize);
 
-pub const DIRS: &[(isize, isize)] = &[
+type Index = (isize, isize);
+
+pub const DIRS: [Index; 8] = [
     (-1, -1),
     (-1, 0),
     (-1, 1),
@@ -52,7 +54,15 @@ pub const DIRS: &[(isize, isize)] = &[
     (1, 1),
 ];
 
-pub const DIAGS: &[(isize, isize)] = &[(-1, -1), (-1, 1), (1, -1), (1, 1)];
+pub fn dirs((row, column): Index) -> [Index; DIRS.len()] {
+    DIRS.map(|(r, c)| (row + r, column + c))
+}
+
+pub const DIAGS: [Index; 4] = [(-1, -1), (-1, 1), (1, -1), (1, 1)];
+
+pub fn diags((row, column): Index) -> [Index; DIAGS.len()] {
+    DIAGS.map(|(r, c)| (row + r, column + c))
+}
 
 #[derive(Debug)]
 pub struct Grid<'a>(Vec<&'a [u8]>);
@@ -62,11 +72,11 @@ impl<'a> Grid<'a> {
         Self(input.lines().map(str::as_bytes).collect())
     }
 
-    pub fn indices(&self) -> impl Iterator<Item = (isize, isize)> + use<> {
+    pub fn indices(&self) -> impl Iterator<Item = Index> + use<> {
         (0..self.0.len() as _).cartesian_product(0..self.0[0].len() as _)
     }
 
-    pub fn get(&self, (row, column): (isize, isize)) -> Option<u8> {
+    pub fn get(&self, (row, column): Index) -> Option<u8> {
         self.0
             .get(row as usize)
             .and_then(|row| row.get(column as usize))
@@ -79,17 +89,17 @@ pub struct GridIter<'a> {
     rem_rows: &'a [&'a [u8]],
 }
 
-impl<'a, 'b> Iterator for GridIter<'a> {
-    type Item = &'a u8;
+impl Iterator for GridIter<'_> {
+    type Item = u8;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let [first, rest @ ..] = self.curr_row {
             self.curr_row = rest;
-            Some(first)
+            Some(*first)
         } else if let [[first_first, first_rest @ ..], rest @ ..] = self.rem_rows {
             self.curr_row = first_rest;
             self.rem_rows = rest;
-            Some(first_first)
+            Some(*first_first)
         } else {
             None
         }
@@ -97,8 +107,7 @@ impl<'a, 'b> Iterator for GridIter<'a> {
 }
 
 impl<'a> IntoIterator for &'a Grid<'a> {
-    type Item = &'a u8;
-
+    type Item = u8;
     type IntoIter = GridIter<'a>;
 
     fn into_iter(self) -> Self::IntoIter {

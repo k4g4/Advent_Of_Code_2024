@@ -12,16 +12,17 @@ pub fn part1(input: &str) -> Answer {
 
     grid.indices()
         .filter(|&index| grid.get(index).unwrap() == b'X')
-        .flat_map(|(row, column)| {
-            let grid = &grid;
-            DIRS.iter().filter(move |&(r, c)| {
-                b"MAS".iter().zip(1..).all(|(&letter, i)| {
-                    grid.get((row + r * i, column + c * i))
-                        .is_some_and(|b| b == letter)
+        .map(|index| {
+            dirs(index)
+                .iter()
+                .filter(|(row, column)| {
+                    b"MAS".iter().zip(1..).all(|(&letter, i)| {
+                        grid.get((row * i, column * i)).is_some_and(|b| b == letter)
+                    })
                 })
-            })
+                .count()
         })
-        .count()
+        .sum::<usize>()
         .into()
 }
 
@@ -39,8 +40,7 @@ M.M.M.M.M.
 
 pub fn part2(input: &str) -> Answer {
     let grid = Grid::new(input);
-
-    let is = |row, column, l| grid.get((row, column)).is_some_and(|b| b == l);
+    let is = |r, c, l| grid.get((r, c)).is_some_and(|b| b == l);
 
     grid.indices()
         .filter(|&index| grid.get(index).unwrap() == b'A')
