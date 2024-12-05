@@ -11,8 +11,8 @@ pub fn part1(input: &str) -> Answer {
     let grid = Grid::new(input);
 
     grid.indices()
-        .filter(|&index| grid.get(index).unwrap() == b'X')
-        .flat_map(|(row, column)| {
+        .filter(|&(_, letter)| letter == b'X')
+        .flat_map(|((row, column), _)| {
             let grid = &grid;
             DIRS.iter().filter(move |&(r, c)| {
                 b"MAS".iter().zip(1..).all(|(&letter, i)| {
@@ -41,8 +41,8 @@ pub fn part2(input: &str) -> Answer {
     let grid = Grid::new(input);
 
     grid.indices()
-        .filter(|&index| unsafe { grid.uget(index) } == b'A')
-        .filter(|&index| {
+        .filter(|&(_, letter)| letter == b'A')
+        .filter(|&(index, _)| {
             let test = |letters| {
                 diags(index)
                     .into_iter()
