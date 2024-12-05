@@ -1,5 +1,4 @@
 use atoi_simd::Parse;
-use itertools::Itertools;
 use rayon::iter::{FromParallelIterator, IntoParallelIterator, ParallelIterator};
 use rustc_hash::FxHashMap;
 use std::{
@@ -54,12 +53,14 @@ pub const DIRS: [Index; 8] = [
     (1, 1),
 ];
 
+#[inline]
 pub fn dirs((row, column): Index) -> [Index; DIRS.len()] {
     DIRS.map(|(r, c)| (row + r, column + c))
 }
 
 pub const DIAGS: [Index; 4] = [(-1, -1), (-1, 1), (1, -1), (1, 1)];
 
+#[inline]
 pub fn diags((row, column): Index) -> [Index; DIAGS.len()] {
     DIAGS.map(|(r, c)| (row + r, column + c))
 }
@@ -72,8 +73,11 @@ impl<'a> Grid<'a> {
         Self(input.lines().map(str::as_bytes).collect())
     }
 
-    pub fn indices(&self) -> impl Iterator<Item = Index> + use<> {
-        (0..self.0.len() as _).cartesian_product(0..self.0[0].len() as _)
+    pub fn indices(&self) -> impl Iterator<Item = Index> + use<'_> {
+        (0..self.0.len()).flat_map(|row| {
+            (0..unsafe { self.0.get_unchecked(row) }.len())
+                .map(move |column| (row as _, column as _))
+        })
     }
 
     pub fn get(&self, (row, column): Index) -> Option<u8> {
@@ -81,6 +85,15 @@ impl<'a> Grid<'a> {
             .get(row as usize)
             .and_then(|row| row.get(column as usize))
             .copied()
+    }
+
+    pub unsafe fn uget(&self, (row, column): Index) -> u8 {
+        unsafe {
+            *self
+                .0
+                .get_unchecked(row as usize)
+                .get_unchecked(column as usize)
+        }
     }
 }
 
