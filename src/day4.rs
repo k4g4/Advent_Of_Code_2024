@@ -43,11 +43,9 @@ pub fn part2(input: &str) -> Answer {
     grid.indices()
         .filter(|&(_, letter)| letter == b'A')
         .filter(|&(index, _)| {
-            let test = |letters| {
-                diags(index)
-                    .into_iter()
-                    .zip(letters)
-                    .all(|(index, &letter)| grid.get(index).is_some_and(|b| b == letter))
+            let test = |letters: &[_; 4]| {
+                let diags = diags(index);
+                (0..4).all(|i| grid.get(diags[i]).is_some_and(|b| b == letters[i]))
             };
             test(b"MMSS") || test(b"SMSM") || test(b"SSMM") || test(b"MSMS")
         })
