@@ -1,5 +1,4 @@
 use atoi_simd::Parse;
-use rayon::iter::{FromParallelIterator, IntoParallelIterator, ParallelIterator};
 use rustc_hash::FxHashMap;
 use std::{
     fmt::{self, Display, Formatter},
@@ -11,6 +10,10 @@ use std::{
 };
 
 pub use itertools::Itertools;
+pub use rayon::{
+    iter::{FromParallelIterator, IntoParallelIterator, ParallelIterator},
+    str::ParallelString,
+};
 pub use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 pub use tinyvec::{array_vec, ArrayVec, TinyVec};
 
