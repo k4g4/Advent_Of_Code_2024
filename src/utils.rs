@@ -10,6 +10,7 @@ use std::{
     time::Duration,
 };
 
+pub use itertools::Itertools;
 pub use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 pub use tinyvec::{array_vec, ArrayVec, TinyVec};
 
