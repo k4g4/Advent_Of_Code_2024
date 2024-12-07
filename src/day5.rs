@@ -1,8 +1,5 @@
-use std::cmp::Ordering;
-
-use rustc_hash::{FxHashMap, FxHashSet};
-
 use crate::utils::*;
+use std::cmp::Ordering;
 
 const _SAMPLE: &str = "\
 47|53
@@ -39,8 +36,8 @@ fn parse_num(input: &str) -> u64 {
     (bytes[0] - b'0') as u64 * 10 + (bytes[1] - b'0') as u64
 }
 
-fn get_deps<'a>(lines: impl Iterator<Item = &'a str>) -> FxHashMap<u64, Vec<u64>> {
-    let mut deps = FxHashMap::<_, Vec<_>>::default();
+fn get_deps<'a>(lines: impl Iterator<Item = &'a str>) -> HashMap<u64, Vec<u64>> {
+    let mut deps = HashMap::<_, Vec<_>>::default();
     for line in lines.take_while(|line| !line.is_empty()) {
         let (first, second) = line.split_once('|').unwrap();
         let (first, second) = (parse_num(first), parse_num(second));
@@ -52,7 +49,7 @@ fn get_deps<'a>(lines: impl Iterator<Item = &'a str>) -> FxHashMap<u64, Vec<u64>
 pub fn part1(input: &str) -> Answer {
     let mut lines = input.lines();
     let deps = get_deps(&mut lines);
-    let mut banned = FxHashSet::default();
+    let mut banned = HashSet::default();
     let mut sum = 0;
     'lines: for line in lines {
         banned.clear();
@@ -74,14 +71,7 @@ pub fn part1(input: &str) -> Answer {
 pub fn part2(input: &str) -> Answer {
     let mut lines = input.lines();
     let deps = get_deps(&mut lines);
-    let cmp = |lhs: &u64, rhs: &u64| {
-        if deps.get(lhs).is_some_and(|lhs_deps| lhs_deps.contains(rhs)) {
-            Ordering::Greater
-        } else {
-            Ordering::Less
-        }
-    };
-    let mut banned = FxHashSet::default();
+    let mut banned = HashSet::default();
     let mut nums = vec![];
     let mut sum = 0;
     'lines: for line in lines {
@@ -90,8 +80,16 @@ pub fn part2(input: &str) -> Answer {
             if banned.contains(&num) {
                 nums.clear();
                 nums.extend(line.split(',').map(parse_num));
-                nums.sort_unstable_by(cmp);
-                sum += nums[nums.len() / 2];
+                let mid = nums.len() / 2;
+                sum += *nums
+                    .select_nth_unstable_by(mid, |lhs, rhs| {
+                        if deps.get(lhs).is_some_and(|lhs_deps| lhs_deps.contains(rhs)) {
+                            Ordering::Greater
+                        } else {
+                            Ordering::Less
+                        }
+                    })
+                    .1;
                 continue 'lines;
             }
             if let Some(ban) = deps.get(&num) {

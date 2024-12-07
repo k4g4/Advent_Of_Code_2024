@@ -4,10 +4,14 @@ use rustc_hash::FxHashMap;
 use std::{
     fmt::{self, Display, Formatter},
     hash::Hash,
-    ops::Deref,
+    io::{self, Write},
+    ops::{Add, AddAssign, Deref, Sub, SubAssign},
+    thread,
+    time::Duration,
 };
 
-pub use tinyvec::{ArrayVec, TinyVec};
+pub use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
+pub use tinyvec::{array_vec, ArrayVec, TinyVec};
 
 pub enum Answer {
     Finished(i64),
@@ -40,7 +44,81 @@ from_int!(u64);
 from_int!(isize);
 from_int!(usize);
 
-type Index = (isize, isize);
+pub fn sleep(ms: u64) {
+    thread::sleep(Duration::from_millis(ms));
+}
+
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Default, Debug)]
+#[repr(u8)]
+pub enum Dir {
+    #[default]
+    North = b'^',
+    East = b'>',
+    South = b'v',
+    West = b'<',
+}
+
+impl Dir {
+    pub fn clockwise(self) -> Self {
+        match self {
+            Self::North => Self::East,
+            Self::East => Self::South,
+            Self::South => Self::West,
+            Self::West => Self::North,
+        }
+    }
+
+    pub fn counter_clockwise(self) -> Self {
+        match self {
+            Self::North => Self::West,
+            Self::East => Self::North,
+            Self::South => Self::East,
+            Self::West => Self::South,
+        }
+    }
+}
+
+pub type Index = (isize, isize);
+
+impl Add<Dir> for Index {
+    type Output = Index;
+
+    fn add(self, dir: Dir) -> Self::Output {
+        let (row, column) = self;
+        match dir {
+            Dir::North => (row - 1, column),
+            Dir::East => (row, column + 1),
+            Dir::South => (row + 1, column),
+            Dir::West => (row, column - 1),
+        }
+    }
+}
+
+impl AddAssign<Dir> for Index {
+    fn add_assign(&mut self, dir: Dir) {
+        *self = *self + dir;
+    }
+}
+
+impl Sub<Dir> for Index {
+    type Output = Index;
+
+    fn sub(self, dir: Dir) -> Self::Output {
+        let (row, column) = self;
+        match dir {
+            Dir::North => (row + 1, column),
+            Dir::East => (row, column - 1),
+            Dir::South => (row - 1, column),
+            Dir::West => (row, column + 1),
+        }
+    }
+}
+
+impl SubAssign<Dir> for Index {
+    fn sub_assign(&mut self, dir: Dir) {
+        *self = *self - dir;
+    }
+}
 
 pub const DIRS: [Index; 8] = [
     (-1, -1),
@@ -72,13 +150,16 @@ impl<'a> Grid<'a> {
     }
 
     pub fn indices(&self) -> impl Iterator<Item = (Index, u8)> + use<'_> {
-        (0..self.0.len()).flat_map(move |row| {
-            (0..unsafe { self.0.get_unchecked(row) }.len()).map(move |column| {
-                ((row as _, column as _), unsafe {
-                    *self.0.get_unchecked(row).get_unchecked(column)
+        unsafe {
+            (0..self.0.len()).flat_map(move |row| {
+                (0..self.0.get_unchecked(row).len()).map(move |column| {
+                    (
+                        (row as _, column as _),
+                        *self.0.get_unchecked(row).get_unchecked(column),
+                    )
                 })
             })
-        })
+        }
     }
 
     pub fn get(&self, (row, column): Index) -> Option<u8> {
@@ -86,6 +167,19 @@ impl<'a> Grid<'a> {
             .get(row as usize)
             .and_then(|row| row.get(column as usize))
             .copied()
+    }
+
+    pub fn print_with(&self, mut f: impl FnMut(Index) -> Option<u8>) {
+        let mut stdout = io::stdout().lock();
+        for ((row, column), byte) in self.indices() {
+            if row != 0 && column == 0 {
+                stdout.write_all(b"\n").unwrap();
+            }
+            let byte = f((row, column)).unwrap_or(byte);
+            stdout.write_all(&[byte]).unwrap();
+        }
+        stdout.write_all(b"\n").unwrap();
+        stdout.flush().unwrap();
     }
 }
 
@@ -181,5 +275,5 @@ impl<K> Deref for Counter<K> {
 
 pub fn parse<T: Parse>(s: &str) -> (T, &str) {
     let (t, bytes) = atoi_simd::parse_any(s.as_bytes()).unwrap();
-    (t, unsafe { &s.get_unchecked(bytes..) })
+    (t, unsafe { s.get_unchecked(bytes..) })
 }

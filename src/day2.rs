@@ -7,7 +7,7 @@ enum Dir {
 
 fn valid_report(report: &[u32]) -> bool {
     report
-        .into_iter()
+        .iter()
         .copied()
         .try_fold((None, None), |(prev, dir), level| {
             if let Some(prev) = prev {
