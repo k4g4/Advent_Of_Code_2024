@@ -153,6 +153,10 @@ impl<'a> Grid<'a> {
         Self(input.lines().map(str::as_bytes).collect())
     }
 
+    pub fn bounds(&self) -> Index {
+        (self.0.len() as _, self.0[0].len() as _)
+    }
+
     pub fn indices(&self) -> impl Iterator<Item = (Index, u8)> + use<'_> {
         unsafe {
             (0..self.0.len()).flat_map(move |row| {
@@ -281,3 +285,32 @@ pub fn parse<T: Parse>(s: &str) -> (T, &str) {
     let (t, bytes) = atoi_simd::parse_any(s.as_bytes()).unwrap();
     (t, unsafe { s.get_unchecked(bytes..) })
 }
+
+macro_rules! gcd_impl {
+    ($f:ident($t:ty)) => {
+        pub fn $f(a: $t, b: $t) -> $t {
+            let (mut a, mut b) = (a.abs_diff(0), b.abs_diff(0));
+            let mut d = 0;
+            loop {
+                match (a % 2, b % 2) {
+                    (0, 0) => {
+                        a /= 2;
+                        b /= 2;
+                        d += 1;
+                    }
+                    (0, 1) => a /= 2,
+                    (1, 0) => b /= 2,
+                    (1, 1) if a > b => a -= b,
+                    (1, 1) if a < b => b -= a,
+                    _ => break (a as u64 * 2u64.pow(d)) as _,
+                }
+            }
+        }
+    };
+}
+gcd_impl!(gcd_i32(i32));
+gcd_impl!(gcd_u32(u32));
+gcd_impl!(gcd_i64(i64));
+gcd_impl!(gcd_u64(u64));
+gcd_impl!(gcd_isize(isize));
+gcd_impl!(gcd_usize(usize));
