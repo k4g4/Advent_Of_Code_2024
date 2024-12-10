@@ -14,7 +14,7 @@ pub fn part1(input: &str) -> Answer {
         .filter(|&(_, letter)| letter == b'X')
         .flat_map(|((row, column), _)| {
             let grid = &grid;
-            DIRS.iter().filter(move |&(r, c)| {
+            ALL_DIRS.iter().filter(move |&(r, c)| {
                 b"MAS".iter().zip(1..).all(|(&letter, i)| {
                     grid.get((row + r * i, column + c * i))
                         .is_some_and(|b| b == letter)

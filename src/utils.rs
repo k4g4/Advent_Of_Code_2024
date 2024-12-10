@@ -124,7 +124,19 @@ impl SubAssign<Dir> for Index {
     }
 }
 
-pub const DIRS: [Index; 8] = [
+pub const DIRS: [Index; 4] = [(-1, 0), (0, 1), (1, 0), (0, -1)];
+
+pub fn dirs((row, column): Index) -> [Index; DIRS.len()] {
+    DIRS.map(|(r, c)| (row + r, column + c))
+}
+
+pub const DIAGS: [Index; 4] = [(-1, -1), (-1, 1), (1, -1), (1, 1)];
+
+pub fn diags((row, column): Index) -> [Index; DIAGS.len()] {
+    DIAGS.map(|(r, c)| (row + r, column + c))
+}
+
+pub const ALL_DIRS: [Index; 8] = [
     (-1, -1),
     (-1, 0),
     (-1, 1),
@@ -135,14 +147,8 @@ pub const DIRS: [Index; 8] = [
     (1, 1),
 ];
 
-pub fn dirs((row, column): Index) -> [Index; DIRS.len()] {
-    DIRS.map(|(r, c)| (row + r, column + c))
-}
-
-pub const DIAGS: [Index; 4] = [(-1, -1), (-1, 1), (1, -1), (1, 1)];
-
-pub fn diags((row, column): Index) -> [Index; DIAGS.len()] {
-    DIAGS.map(|(r, c)| (row + r, column + c))
+pub fn all_dirs((row, column): Index) -> [Index; ALL_DIRS.len()] {
+    ALL_DIRS.map(|(r, c)| (row + r, column + c))
 }
 
 #[derive(Debug)]
