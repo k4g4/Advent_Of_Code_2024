@@ -1,7 +1,7 @@
 use crate::utils::*;
 use std::mem;
 
-const SAMPLE: &str = "\
+const _SAMPLE: &str = "\
 89010123
 78121874
 87430965
@@ -11,10 +11,10 @@ const SAMPLE: &str = "\
 01329801
 10456732";
 
-pub fn part1(_input: &str) -> Answer {
+pub fn part1(input: &str) -> Answer {
     type TrailMap = HashMap<Index, HashSet<usize>>;
 
-    let grid = Grid::new(SAMPLE);
+    let grid = Grid::new(input);
     let mut trails: TrailMap = grid
         .indices()
         .filter(|&(_, tile)| tile == b'0')
@@ -40,6 +40,27 @@ pub fn part1(_input: &str) -> Answer {
     trails.values().flatten().count().into()
 }
 
-pub fn part2(_input: &str) -> Answer {
-    Answer::Unfinished
+pub fn part2(input: &str) -> Answer {
+    type TrailMap = HashMap<Index, usize>;
+
+    let grid = Grid::new(input);
+    let mut trails: TrailMap = grid
+        .indices()
+        .filter(|&(_, tile)| tile == b'0')
+        .map(|(index, _)| (index, 1))
+        .collect();
+    let mut new_trails = TrailMap::default();
+
+    for step in b'1'..=b'9' {
+        for (index, trailheads) in trails.drain() {
+            for new_index in dirs(index) {
+                if grid.get(new_index) == Some(step) {
+                    *new_trails.entry(new_index).or_default() += trailheads;
+                }
+            }
+        }
+        mem::swap(&mut trails, &mut new_trails);
+    }
+
+    trails.values().sum::<usize>().into()
 }
