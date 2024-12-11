@@ -292,6 +292,19 @@ pub fn parse<T: Parse>(s: &str) -> (T, &str) {
     (t, unsafe { s.get_unchecked(bytes..) })
 }
 
+pub fn digits(mut num: u64) -> u32 {
+    if num == 0 {
+        1
+    } else {
+        let mut num_len = 0;
+        while num > 0 {
+            num /= 10;
+            num_len += 1;
+        }
+        num_len
+    }
+}
+
 macro_rules! gcd_impl {
     ($f:ident($t:ty)) => {
         pub fn $f(a: $t, b: $t) -> $t {

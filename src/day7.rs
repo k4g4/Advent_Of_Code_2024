@@ -45,19 +45,6 @@ pub fn part1(input: &str) -> Answer {
 
 const CACHE_LEN: usize = 8;
 
-fn digits(mut num: u64) -> u32 {
-    if num == 0 {
-        1
-    } else {
-        let mut num_len = 0;
-        while num > 0 {
-            num /= 10;
-            num_len += 1;
-        }
-        num_len
-    }
-}
-
 fn calibrations(nums: &[u64]) -> impl Iterator<Item = u64> + use<'_> {
     (0..3u64.pow((nums.len() - 1) as _)).map(|mut ops| {
         iter::from_fn(|| {
