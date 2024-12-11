@@ -1,59 +1,41 @@
 use crate::utils::*;
 
-const SAMPLE: &str = "125 17";
+const _SAMPLE: &str = "125 17";
 
-#[derive(Debug)]
-struct Stone {
-    n: u64,
-    next: usize,
+fn blink(stone: u64, blinks: u32, memo: &mut HashMap<(u64, u32), u64>) -> u64 {
+    if blinks == 0 {
+        1
+    } else if stone == 0 {
+        blink(1, blinks - 1, memo)
+    } else if let Some(&stones) = memo.get(&(stone, blinks)) {
+        stones
+    } else {
+        let digits = digits(stone);
+        let stones = if digits % 2 == 0 {
+            let mask = 10u64.pow(digits / 2);
+            blink(stone / mask, blinks - 1, memo) + blink(stone % mask, blinks - 1, memo)
+        } else {
+            blink(stone * 2024, blinks - 1, memo)
+        };
+        memo.insert((stone, blinks), stones);
+        stones
+    }
 }
 
-fn parse_stones(input: &str) -> Vec<Stone> {
+fn count_stones(input: &str, blinks: u32) -> u64 {
+    let mut memo = HashMap::default();
     input
         .split_ascii_whitespace()
         .map(str::parse::<u64>)
-        .zip(1..)
-        .map(|(result, next)| result.map(|n| Stone { n, next }))
-        .try_collect()
-        .unwrap()
+        .map(Result::unwrap)
+        .map(|stone| blink(stone, blinks, &mut memo))
+        .sum()
 }
 
-fn print(stones: &[Stone]) {
-    let mut at = 0;
-    while let Some(Stone { n, next }) = stones.get(at) {
-        at = *next;
-        print!("{n} ");
-    }
-    println!();
+pub fn part1(input: &str) -> Answer {
+    count_stones(input, 25).into()
 }
 
-fn update(mut stones: Vec<Stone>) -> Vec<Stone> {
-    let mut at = 0;
-    while let Some(Stone { n, next }) = stones.get_mut(at) {
-        at = *next;
-        if *n == 0 {
-            *n = 1;
-        } else {
-            let digits = digits(*n);
-            if digits % 2 == 0 {
-                todo!();
-            } else {
-                *n *= 2024;
-            }
-        }
-    }
-    stones
-}
-
-pub fn part1(_input: &str) -> Answer {
-    let mut stones = parse_stones(SAMPLE);
-    for _ in 0..6 {
-        print(&stones);
-        stones = update(stones);
-    }
-    Answer::Unfinished
-}
-
-pub fn part2(_input: &str) -> Answer {
-    Answer::Unfinished
+pub fn part2(input: &str) -> Answer {
+    count_stones(input, 75).into()
 }
