@@ -1,10 +1,11 @@
 use atoi_simd::Parse;
 use rustc_hash::FxHashMap;
 use std::{
-    fmt::{self, Display, Formatter},
+    fmt::{self, Debug, Display, Formatter},
     hash::Hash,
     io::{self, Write},
-    ops::{Add, AddAssign, Deref, Sub, SubAssign},
+    mem,
+    ops::{Add, AddAssign, Deref, DerefMut, Sub, SubAssign},
     thread,
     time::Duration,
 };
@@ -151,19 +152,87 @@ pub fn all_dirs((row, column): Index) -> [Index; ALL_DIRS.len()] {
     ALL_DIRS.map(|(r, c)| (row + r, column + c))
 }
 
+#[derive(Copy, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[repr(transparent)]
+pub struct Byte(u8);
+
+impl Byte {
+    pub fn is_null(&self) -> bool {
+        *self == Self(b'\0')
+    }
+
+    pub fn make_null(&mut self) {
+        *self = Self(b'\0');
+    }
+}
+
+impl From<u8> for Byte {
+    fn from(byte: u8) -> Self {
+        Self(byte)
+    }
+}
+
+impl From<Byte> for char {
+    fn from(byte: Byte) -> Self {
+        char::from(byte.0)
+    }
+}
+
+impl Deref for Byte {
+    type Target = u8;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Byte {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl Debug for Byte {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        Debug::fmt(&char::from(self.0), f)
+    }
+}
+
+impl PartialEq<u8> for Byte {
+    fn eq(&self, other: &u8) -> bool {
+        self.0.eq(other)
+    }
+}
+
+impl PartialEq<char> for Byte {
+    fn eq(&self, other: &char) -> bool {
+        char::from(self.0).eq(other)
+    }
+}
+
+pub trait AsBytes {
+    fn as_bytes(&self) -> &[Byte];
+}
+
+impl AsBytes for str {
+    fn as_bytes(&self) -> &[Byte] {
+        unsafe { mem::transmute(self) }
+    }
+}
+
 #[derive(Debug)]
-pub struct Grid<'a>(Vec<&'a [u8]>);
+pub struct Grid<'a>(Box<[&'a [Byte]]>);
 
 impl<'a> Grid<'a> {
     pub fn new(input: &'a str) -> Self {
-        Self(input.lines().map(str::as_bytes).collect())
+        Self(input.lines().map(AsBytes::as_bytes).collect())
     }
 
     pub fn bounds(&self) -> Index {
         (self.0.len() as _, self.0[0].len() as _)
     }
 
-    pub fn indices(&self) -> impl Iterator<Item = (Index, u8)> + use<'_> {
+    pub fn iter(&self) -> impl Iterator<Item = (Index, Byte)> + use<'_> {
         unsafe {
             (0..self.0.len()).flat_map(move |row| {
                 (0..self.0.get_unchecked(row).len()).map(move |column| {
@@ -176,7 +245,7 @@ impl<'a> Grid<'a> {
         }
     }
 
-    pub fn get(&self, (row, column): Index) -> Option<u8> {
+    pub fn get(&self, (row, column): Index) -> Option<Byte> {
         self.0
             .get(row as usize)
             .and_then(|row| row.get(column as usize))
@@ -185,7 +254,7 @@ impl<'a> Grid<'a> {
 
     pub fn print_with(&self, mut f: impl FnMut(Index) -> Option<u8>) {
         let mut stdout = io::stdout().lock();
-        for ((row, column), byte) in self.indices() {
+        for ((row, column), Byte(byte)) in self.iter() {
             if row != 0 && column == 0 {
                 stdout.write_all(b"\n").unwrap();
             }
@@ -197,42 +266,78 @@ impl<'a> Grid<'a> {
     }
 }
 
-pub struct GridIter<'a> {
-    curr_row: &'a [u8],
-    rem_rows: &'a [&'a [u8]],
+pub struct GridOwned {
+    buf: Box<[Byte]>,
+    columns: usize,
 }
 
-impl Iterator for GridIter<'_> {
-    type Item = u8;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if let [first, rest @ ..] = self.curr_row {
-            self.curr_row = rest;
-            Some(*first)
-        } else if let [[first_first, first_rest @ ..], rest @ ..] = self.rem_rows {
-            self.curr_row = first_rest;
-            self.rem_rows = rest;
-            Some(*first_first)
-        } else {
-            None
+impl GridOwned {
+    pub fn new(input: &str) -> Self {
+        let mut lines = input.lines();
+        let first = lines.next().unwrap();
+        let columns = first.len();
+        Self {
+            buf: first
+                .bytes()
+                .chain(lines.flat_map(str::bytes))
+                .map_into()
+                .collect(),
+            columns,
         }
+    }
+
+    pub fn bounds(&self) -> Index {
+        let rows = self.buf.len() / self.columns;
+        (rows as _, self.columns as _)
+    }
+
+    pub fn indices(&self) -> impl Iterator<Item = Index> + use<> {
+        let (rows, cols) = self.bounds();
+        (0..rows).cartesian_product(0..cols)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (Index, Byte)> + use<'_> {
+        self.indices().zip(self.buf.iter().copied())
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (Index, &mut Byte)> + use<'_> {
+        let (rows, cols) = self.bounds();
+        (0..rows)
+            .cartesian_product(0..cols)
+            .zip(self.buf.iter_mut())
+    }
+
+    pub fn get(&self, (row, column): Index) -> Option<Byte> {
+        let columns = self.columns as isize;
+        (row >= 0 && (0..columns).contains(&column))
+            .then(|| self.buf.get((row * columns + column) as usize))
+            .flatten()
+            .copied()
+    }
+
+    pub fn get_mut(&mut self, (row, column): Index) -> Option<&mut Byte> {
+        let columns = self.columns as isize;
+        (row >= 0 && (0..columns).contains(&column))
+            .then(|| self.buf.get_mut((row * columns + column) as usize))
+            .flatten()
+    }
+
+    pub fn print_with(&self, mut f: impl FnMut(Index) -> Option<u8>) {
+        let mut stdout = io::stdout().lock();
+        for ((row, column), Byte(byte)) in self.iter() {
+            if row != 0 && column == 0 {
+                stdout.write_all(b"\n").unwrap();
+            }
+            let byte = f((row, column)).unwrap_or(byte);
+            stdout.write_all(&[byte]).unwrap();
+        }
+        stdout.write_all(b"\n").unwrap();
+        stdout.flush().unwrap();
     }
 }
 
-impl<'a> IntoIterator for &'a Grid<'a> {
-    type Item = u8;
-    type IntoIter = GridIter<'a>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        let (first, rest) = self.0.split_first().unwrap();
-        GridIter {
-            curr_row: first,
-            rem_rows: rest,
-        }
-    }
-}
-
-pub struct Counter<K>(FxHashMap<K, usize>);
+#[derive(Debug)]
+pub struct Counter<K>(FxHashMap<K, u64>);
 
 impl<K> Default for Counter<K> {
     fn default() -> Self {
@@ -242,7 +347,11 @@ impl<K> Default for Counter<K> {
 
 impl<K: Eq + Hash> Counter<K> {
     pub fn add(&mut self, key: K) {
-        *self.0.entry(key).or_default() += 1;
+        self.add_n(key, 1);
+    }
+
+    pub fn add_n(&mut self, key: K, n: u64) {
+        *self.0.entry(key).or_default() += n;
     }
 }
 
@@ -280,7 +389,7 @@ impl<K: Eq + Hash + Send + Sync> FromParallelIterator<K> for Counter<K> {
 }
 
 impl<K> Deref for Counter<K> {
-    type Target = FxHashMap<K, usize>;
+    type Target = FxHashMap<K, u64>;
 
     fn deref(&self) -> &Self::Target {
         &self.0

@@ -16,17 +16,17 @@ pub fn part1(input: &str) -> Answer {
 
     let grid = Grid::new(input);
     let mut trails: TrailMap = grid
-        .indices()
+        .iter()
         .filter(|&(_, tile)| tile == b'0')
         .enumerate()
         .map(|(trailhead, (index, _))| (index, HashSet::from_iter([trailhead])))
         .collect();
     let mut new_trails = TrailMap::default();
 
-    for step in b'1'..=b'9' {
+    for step in '1'..='9' {
         for (index, trailheads) in trails.drain() {
             for new_index in dirs(index) {
-                if grid.get(new_index) == Some(step) {
+                if grid.get(new_index).map(char::from) == Some(step) {
                     new_trails
                         .entry(new_index)
                         .or_default()
@@ -45,16 +45,16 @@ pub fn part2(input: &str) -> Answer {
 
     let grid = Grid::new(input);
     let mut trails: TrailMap = grid
-        .indices()
+        .iter()
         .filter(|&(_, tile)| tile == b'0')
         .map(|(index, _)| (index, 1))
         .collect();
     let mut new_trails = TrailMap::default();
 
-    for step in b'1'..=b'9' {
+    for step in '1'..='9' {
         for (index, trailheads) in trails.drain() {
             for new_index in dirs(index) {
-                if grid.get(new_index) == Some(step) {
+                if grid.get(new_index).map(char::from) == Some(step) {
                     *new_trails.entry(new_index).or_default() += trailheads;
                 }
             }

@@ -10,12 +10,12 @@ XMAS.S
 pub fn part1(input: &str) -> Answer {
     let grid = Grid::new(input);
 
-    grid.indices()
-        .filter(|&(_, letter)| letter == b'X')
+    grid.iter()
+        .filter(|&(_, letter)| letter == 'X')
         .flat_map(|((row, column), _)| {
             let grid = &grid;
             ALL_DIRS.iter().filter(move |&(r, c)| {
-                b"MAS".iter().zip(1..).all(|(&letter, i)| {
+                "MAS".chars().zip(1..).all(|(letter, i)| {
                     grid.get((row + r * i, column + c * i))
                         .is_some_and(|b| b == letter)
                 })
@@ -40,8 +40,8 @@ M.M.M.M.M.
 pub fn part2(input: &str) -> Answer {
     let grid = Grid::new(input);
 
-    grid.indices()
-        .filter(|&(_, letter)| letter == b'A')
+    grid.iter()
+        .filter(|&(_, letter)| letter == 'A')
         .filter(|&(index, _)| {
             let test = |letters: &[_; 4]| {
                 let diags = diags(index);

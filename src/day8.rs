@@ -24,7 +24,7 @@ pub fn part1(input: &str) -> Answer {
     let grid = Grid::new(input);
     let (rows, cols) = grid.bounds();
     let mut antenna_freqs = HashMap::<_, HashSet<_>>::default();
-    for (index, freq) in grid.indices().filter(|&(_, freq)| freq != SPACE) {
+    for (index, freq) in grid.iter().filter(|&(_, freq)| freq != SPACE) {
         antenna_freqs.entry(freq).or_default().insert(index);
     }
     let antinodes: HashSet<_> = antenna_freqs
@@ -68,7 +68,7 @@ fn antinodes(
 pub fn part2(input: &str) -> Answer {
     let grid = Grid::new(input);
     let mut antenna_freqs = HashMap::<_, HashSet<_>>::default();
-    for (index, freq) in grid.indices().filter(|&(_, freq)| freq != SPACE) {
+    for (index, freq) in grid.iter().filter(|&(_, freq)| freq != SPACE) {
         antenna_freqs.entry(freq).or_default().insert(index);
     }
     let antinodes: HashSet<_> = antenna_freqs

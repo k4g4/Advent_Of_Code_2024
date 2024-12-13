@@ -1,6 +1,6 @@
 use crate::utils::*;
 
-const ROCK: u8 = b'#';
+const ROCK: char = '#';
 const _SAMPLE: &str = "\
 ....#.....
 .........#
@@ -17,8 +17,8 @@ pub fn part1(input: &str) -> Answer {
     let grid = Grid::new(input);
     let mut indices = HashSet::default();
     let mut pos = grid
-        .indices()
-        .find_map(|(pos, tile)| (tile == Dir::North as _).then_some(pos))
+        .iter()
+        .find_map(|(pos, tile)| (tile == Dir::North as u8).then_some(pos))
         .unwrap();
     let mut dir = Dir::North;
 
@@ -38,8 +38,8 @@ pub fn part1(input: &str) -> Answer {
 pub fn part2(input: &str) -> Answer {
     let grid = Grid::new(input);
     let mut pos = grid
-        .indices()
-        .find_map(|(pos, tile)| (tile == Dir::North as _).then_some(pos))
+        .iter()
+        .find_map(|(pos, tile)| (tile == Dir::North as u8).then_some(pos))
         .unwrap();
     let start = pos;
     let mut dir = Dir::North;
@@ -81,15 +81,15 @@ pub fn part2_attempt1(input: &str) -> Answer {
     let grid = Grid::new(input);
     let mut indices = HashSet::default();
     let mut pos = grid
-        .indices()
-        .find_map(|(pos, tile)| (tile == Dir::North as _).then_some(pos))
+        .iter()
+        .find_map(|(pos, tile)| (tile == Dir::North as u8).then_some(pos))
         .unwrap();
     let mut dir = Dir::North;
 
     fn backwards(mut pos: Index, dir: Dir, grid: &Grid, indices: &mut HashSet<(Index, Dir)>) {
         while grid.get(pos).is_some_and(|tile| tile != ROCK) && indices.insert((pos, dir)) {
             pos -= dir;
-            if grid.get(pos + dir.counter_clockwise()) == Some(ROCK) {
+            if grid.get(pos + dir.counter_clockwise()).map(char::from) == Some(ROCK) {
                 backwards(pos, dir.counter_clockwise(), grid, indices);
             }
         }
