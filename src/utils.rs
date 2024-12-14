@@ -252,14 +252,14 @@ impl<'a> Grid<'a> {
             .copied()
     }
 
-    pub fn print_with(&self, mut f: impl FnMut(Index) -> Option<u8>) {
+    pub fn print_with(&self, mut f: impl FnMut(Index) -> Option<char>) {
         let mut stdout = io::stdout().lock();
-        for ((row, column), Byte(byte)) in self.iter() {
+        for ((row, column), byte) in self.iter() {
             if row != 0 && column == 0 {
                 stdout.write_all(b"\n").unwrap();
             }
-            let byte = f((row, column)).unwrap_or(byte);
-            stdout.write_all(&[byte]).unwrap();
+            let char = f((row, column)).unwrap_or(byte.into());
+            write!(&mut stdout, "{char}").unwrap();
         }
         stdout.write_all(b"\n").unwrap();
         stdout.flush().unwrap();
@@ -322,14 +322,14 @@ impl GridOwned {
             .flatten()
     }
 
-    pub fn print_with(&self, mut f: impl FnMut(Index) -> Option<u8>) {
+    pub fn print_with(&self, mut f: impl FnMut(Index) -> Option<char>) {
         let mut stdout = io::stdout().lock();
-        for ((row, column), Byte(byte)) in self.iter() {
+        for ((row, column), byte) in self.iter() {
             if row != 0 && column == 0 {
                 stdout.write_all(b"\n").unwrap();
             }
-            let byte = f((row, column)).unwrap_or(byte);
-            stdout.write_all(&[byte]).unwrap();
+            let char = f((row, column)).unwrap_or(byte.into());
+            write!(&mut stdout, "{char}").unwrap();
         }
         stdout.write_all(b"\n").unwrap();
         stdout.flush().unwrap();
