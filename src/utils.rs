@@ -322,6 +322,10 @@ impl GridOwned {
             .flatten()
     }
 
+    pub fn set(&mut self, index: Index, char: char) {
+        *self.get_mut(index).unwrap() = (char as u8).into();
+    }
+
     pub fn print_with(&self, mut f: impl FnMut(Index) -> Option<char>) {
         let mut stdout = io::stdout().lock();
         for ((row, column), byte) in self.iter() {
