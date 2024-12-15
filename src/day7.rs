@@ -1,5 +1,5 @@
 use crate::utils::*;
-use std::{hint::unreachable_unchecked, iter};
+use std::{hint, iter};
 
 const ARRAY_LEN: usize = 16;
 const _SAMPLE: &str = "\
@@ -57,7 +57,7 @@ fn calibrations(nums: &[u64]) -> impl Iterator<Item = u64> + use<'_> {
             0 => val + num,
             1 => val * num,
             2 => val * 10u64.pow(digits(num)) + num,
-            _ => unsafe { unreachable_unchecked() },
+            _ => unsafe { hint::unreachable_unchecked() },
         })
     })
 }

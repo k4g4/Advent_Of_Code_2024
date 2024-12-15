@@ -1,5 +1,5 @@
 use crate::utils::*;
-use std::mem;
+use std::{hint, mem};
 
 const _SAMPLE: &str = "\
 ##########
@@ -39,7 +39,7 @@ pub fn part1(input: &str) -> Answer {
         .map(|b| unsafe { mem::transmute(b) });
 
     for dir in dirs {
-        match map.get(robot + dir).unwrap().into() {
+        match unsafe { map.get(robot + dir).unwrap_unchecked() }.into() {
             '#' => {}
             '.' => {
                 robot += dir;
@@ -47,7 +47,7 @@ pub fn part1(input: &str) -> Answer {
             'O' => {
                 let mut r#box = robot + dir;
                 loop {
-                    match map.get(r#box + dir).unwrap().into() {
+                    match unsafe { map.get(r#box + dir).unwrap_unchecked() }.into() {
                         'O' => {
                             r#box += dir;
                         }
@@ -62,7 +62,7 @@ pub fn part1(input: &str) -> Answer {
                     }
                 }
             }
-            _ => unreachable!(),
+            _ => unsafe { hint::unreachable_unchecked() },
         }
     }
 
@@ -74,13 +74,13 @@ pub fn part1(input: &str) -> Answer {
 
 pub fn part2(input: &str) -> Answer {
     fn clearable(map: &mut GridOwned, cached: &mut HashSet<Index>, space: Index, dir: Dir) -> bool {
-        match map.get(space).unwrap().into() {
+        match unsafe { map.get(space).unwrap_unchecked() }.into() {
             '.' => true,
             '#' => false,
             '[' if cached.contains(&space) => true,
             '[' => movable(map, cached, space, dir),
             ']' => movable(map, cached, space + Dir::West, dir),
-            _ => unreachable!(),
+            _ => unsafe { hint::unreachable_unchecked() },
         }
     }
 
@@ -129,7 +129,7 @@ pub fn part2(input: &str) -> Answer {
 
     let mut cached = HashSet::default();
     for dir in dirs {
-        match map.get(robot + dir).unwrap().into() {
+        match unsafe { map.get(robot + dir).unwrap_unchecked() }.into() {
             '#' => {}
             '.' => {
                 robot += dir;
@@ -148,7 +148,7 @@ pub fn part2(input: &str) -> Answer {
                     robot += dir;
                 }
             }
-            _ => unreachable!(),
+            _ => unsafe { hint::unreachable_unchecked() },
         }
     }
 
