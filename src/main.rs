@@ -60,10 +60,10 @@ fn main() {
 
 fn run_puzzle(input: &str, puzzle: Puzzle) {
     let time = Instant::now();
-    if let Answer::Finished(answer) = puzzle(input) {
-        let elapsed = time.elapsed();
-        println!("{answer} ({elapsed:?})");
-    } else {
-        println!();
+    let answer = puzzle(input);
+    print!("{answer}");
+    if answer != Answer::Unfinished {
+        print!(" ({:?})", time.elapsed());
     }
+    println!();
 }

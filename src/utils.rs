@@ -18,18 +18,26 @@ pub use rayon::{
 pub use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 pub use tinyvec::{array_vec, ArrayVec, TinyVec};
 
+#[derive(PartialEq)]
 pub enum Answer {
-    Finished(i64),
+    Number(i64),
+    String(String),
     Unfinished,
 }
 
 impl Display for Answer {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        if let Self::Finished(answer) = self {
-            write!(f, "{answer}")
-        } else {
-            Ok(())
+        match self {
+            Self::Number(n) => write!(f, "{n}"),
+            Self::String(s) => write!(f, "{s}"),
+            Self::Unfinished => write!(f, "[unfinished]"),
         }
+    }
+}
+
+impl From<String> for Answer {
+    fn from(answer: String) -> Self {
+        Self::String(answer)
     }
 }
 
@@ -37,7 +45,7 @@ macro_rules! from_int {
     ($int:ty) => {
         impl From<$int> for Answer {
             fn from(answer: $int) -> Self {
-                Self::Finished(answer as _)
+                Self::Number(answer as _)
             }
         }
     };

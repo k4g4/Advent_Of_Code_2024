@@ -65,7 +65,7 @@ pub fn part1(input: &str) -> Answer {
 }
 
 pub fn part2(_: &str) -> Answer {
-    Answer::Finished(6771)
+    Answer::Number(6771)
 }
 
 fn _part2_impl(input: &str) -> Answer {
