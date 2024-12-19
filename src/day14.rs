@@ -86,7 +86,7 @@ fn _part2_impl(input: &str) -> Answer {
             grid.print_with(|(row, column)| {
                 robots
                     .iter()
-                    .any(|&Robot { pos: (x, y), .. }| x == column as _ && y == row as _)
+                    .any(|&Robot { pos: (x, y), .. }| x == column as i64 && y == row as i64)
                     .then_some('⬜')
                     .or(Some('⬛'))
             });

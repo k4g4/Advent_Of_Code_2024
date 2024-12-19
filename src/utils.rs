@@ -12,11 +12,11 @@ use std::{
 
 pub use itertools::Itertools;
 pub use rayon::{
-    iter::{FromParallelIterator, IntoParallelIterator, ParallelIterator},
+    iter::{FromParallelIterator, IndexedParallelIterator, IntoParallelIterator, ParallelIterator},
     str::ParallelString,
 };
 pub use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
-pub use tinyvec::{array_vec, ArrayVec, TinyVec};
+pub use tinyvec::{array_vec, tiny_vec, ArrayVec, TinyVec};
 
 #[derive(PartialEq)]
 pub enum Answer {
@@ -50,6 +50,8 @@ macro_rules! from_int {
         }
     };
 }
+from_int!(i16);
+from_int!(u16);
 from_int!(i32);
 from_int!(u32);
 from_int!(i64);
@@ -162,7 +164,7 @@ pub fn all_dirs((row, column): Index) -> [Index; ALL_DIRS.len()] {
 
 #[derive(Copy, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
-pub struct Byte(u8);
+pub struct Byte(pub u8);
 
 impl Byte {
     pub fn is_null(&self) -> bool {
@@ -274,6 +276,7 @@ impl<'a> Grid<'a> {
     }
 }
 
+#[derive(Clone)]
 pub struct GridOwned {
     buf: Box<[Byte]>,
     columns: usize,
@@ -291,6 +294,13 @@ impl GridOwned {
                 .map_into()
                 .collect(),
             columns,
+        }
+    }
+
+    pub fn new_dims((rows, cols): Index) -> Self {
+        Self {
+            buf: vec![Byte(b' '); rows as usize * cols as usize].into(),
+            columns: cols as _,
         }
     }
 
