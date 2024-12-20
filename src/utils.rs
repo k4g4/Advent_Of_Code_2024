@@ -12,7 +12,10 @@ use std::{
 
 pub use itertools::Itertools;
 pub use rayon::{
-    iter::{FromParallelIterator, IndexedParallelIterator, IntoParallelIterator, ParallelIterator},
+    iter::{
+        FromParallelIterator, IndexedParallelIterator, IntoParallelIterator,
+        IntoParallelRefIterator, ParallelIterator,
+    },
     str::ParallelString,
 };
 pub use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
