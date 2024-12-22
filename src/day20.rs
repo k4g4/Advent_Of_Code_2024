@@ -82,15 +82,15 @@ pub fn part1(input: &str) -> Answer {
 
 pub fn part2(input: &str) -> Answer {
     let grid = Grid::new(input);
-    let mut tiles = HashMap::default();
+    let mut tiles = vec![];
     let mut pos = grid
         .iter()
         .find_map(|(i, b)| (b == 'S').then_some(i))
         .unwrap();
     let mut backwards = BACKWARDS;
 
-    for dist in 0.. {
-        tiles.insert(pos, dist);
+    loop {
+        tiles.push(pos);
         if unsafe { grid.get(pos).unwrap_unchecked() } == 'E' {
             break;
         }
@@ -108,11 +108,15 @@ pub fn part2(input: &str) -> Answer {
 
     tiles
         .par_iter()
-        .flat_map(|(&(i_y, i_x), &a)| {
-            tiles.par_iter().filter(move |&(&(j_y, j_x), &b)| {
-                let dist = i_y.abs_diff(j_y) + i_x.abs_diff(j_x);
-                a - b - dist as i64 >= THRESHOLD && dist <= 20
-            })
+        .enumerate()
+        .flat_map(|(a, &(i_y, i_x))| {
+            tiles[a as usize..]
+                .par_iter()
+                .enumerate()
+                .filter(move |&(b, &(j_y, j_x))| {
+                    let dist = i_y.abs_diff(j_y) + i_x.abs_diff(j_x);
+                    b as i64 - dist as i64 >= THRESHOLD && dist <= 20
+                })
         })
         .count()
         .into()
