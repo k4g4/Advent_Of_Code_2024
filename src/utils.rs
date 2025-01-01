@@ -44,6 +44,12 @@ impl From<String> for Answer {
     }
 }
 
+impl From<&str> for Answer {
+    fn from(answer: &str) -> Self {
+        Self::String(answer.into())
+    }
+}
+
 macro_rules! from_int {
     ($int:ty) => {
         impl From<$int> for Answer {
